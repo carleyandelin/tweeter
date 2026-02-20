@@ -24,7 +24,9 @@ const Login = (props: Props) => {
   const { displayErrorMessage } = useMessageActions();
 
   const listener: LoginView = {
-        setIsLoading
+        setIsLoading,
+        setRememberMe,
+        displayErrorMessage
     }
 
   const presenterRef = useRef<LoginPresenter | null>(null)

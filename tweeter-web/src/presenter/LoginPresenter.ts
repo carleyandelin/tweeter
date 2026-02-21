@@ -1,9 +1,12 @@
+import { AuthToken, User } from "tweeter-shared";
 import { UserService } from "../model.service/UserService";
 
 export interface LoginView {
     setIsLoading: (value: boolean) => void
     setRememberMe: (value: boolean) => void
     displayErrorMessage: (message: string) => void
+    updateUserInfo: (user: User, authToken: AuthToken, rememberMe: boolean) => void
+    navigate: (value: string) => void
 }
 
 export class LoginPresenter {
@@ -15,18 +18,18 @@ export class LoginPresenter {
         this.service = new UserService();
     }
 
-    public async doLogin(alias: string, password: string, rememberMe: boolean) {
+    public async doLogin(alias: string, password: string, rememberMe: boolean, originalUrl: string | undefined) {
         try {
             this._view.setIsLoading(true);
 
             const [user, authToken] = await this.service.login(alias, password);
 
-            updateUserInfo(user, user, authToken, rememberMe);
+            this._view.updateUserInfo(user, authToken, rememberMe);
 
-            if (!!props.originalUrl) {
-                navigate(props.originalUrl);
+            if (originalUrl) {
+                this._view.navigate(originalUrl);
             } else {
-                navigate(`/feed/${user.alias}`);
+                this._view.navigate(`/feed/${user.alias}`);
             }
         } catch (error) {
             this._view.displayErrorMessage(

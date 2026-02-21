@@ -3,7 +3,6 @@ import { UserService } from "../model.service/UserService";
 
 export interface LoginView {
     setIsLoading: (value: boolean) => void
-    setRememberMe: (value: boolean) => void
     displayErrorMessage: (message: string) => void
     updateUserInfo: (user: User, authToken: AuthToken, rememberMe: boolean) => void
     navigate: (value: string) => void

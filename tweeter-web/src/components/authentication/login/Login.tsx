@@ -25,7 +25,6 @@ const Login = (props: Props) => {
 
   const listener: LoginView = {
         setIsLoading,
-        setRememberMe,
         displayErrorMessage,
         updateUserInfo: (user: User, authToken: AuthToken, rememberMe: boolean) => updateUserInfo(user, user, authToken, rememberMe),
         navigate

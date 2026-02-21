@@ -1,9 +1,8 @@
-import { FakeData } from "tweeter-shared/dist/util/FakeData";
 import { useMessageActions } from "../components/toaster/MessageHooks";
-import { User } from "tweeter-shared/dist/model/domain/User";
-import { AuthToken } from "tweeter-shared/dist/model/domain/AuthToken";
 import { useNavigate } from "react-router-dom";
 import { useUserInfo, useUserInfoActions } from "../components/userInfo/UserInfoHooks";
+import { useRef } from "react";
+import { UserNavigationView, UserNavigationPresenter } from "../presenter/UserNavigationPresenter";
 
 export const useUserNavigation = () => {
     const { displayedUser, authToken } = useUserInfo();
@@ -11,24 +10,16 @@ export const useUserNavigation = () => {
     const navigate = useNavigate();
     const { displayErrorMessage } = useMessageActions();
 
-    const extractAlias = (value: string): string => {
-        const index = value.indexOf("@");
-        return value.substring(index);
-    };
+    const listener: UserNavigationView = {}
       
-    const getUser = async (
-        authToken: AuthToken,
-        alias: string
-    ): Promise<User | null> => {
-        // TODO: Replace with the result of calling server
-        return FakeData.instance.findUserByAlias(alias);
-    };
+    const presenterRef = useRef<UserNavigationPresenter | null>(null)
+        if (!presenterRef.current) { presenterRef.current = new UserNavigationPresenter(listener); }
 
     const navigateToUser = async (event: React.MouseEvent, featureUrl: string): Promise<void> => {
         event.preventDefault();
         try {
-            const alias = extractAlias(event.target.toString());
-            const toUser = await getUser(authToken!, alias);
+            const alias = presenterRef.current!.extractAlias(event.target.toString());
+            const toUser = await presenterRef.current!.getUser(authToken!, alias)
     
             if (toUser) {
             if (!toUser.equals(displayedUser!)) {

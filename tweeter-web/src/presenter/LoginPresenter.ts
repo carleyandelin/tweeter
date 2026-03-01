@@ -30,6 +30,7 @@ export class LoginPresenter extends Presenter<LoginView> {
                 this.view.navigate(`/feed/${user.alias}`);
             }
         }, "log user in")
+        // finally block goes here
         this.view.setIsLoading(false);
     };
 

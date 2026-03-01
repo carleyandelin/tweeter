@@ -4,7 +4,7 @@ export interface View {
     displayErrorMessage: (message: string) => void
 }
 
-// used generic types because we need more than one datatype
+// used generic types because we need more than data type
 export abstract class Presenter<V extends View> {
     private _view: V;
 
@@ -27,3 +27,12 @@ export abstract class Presenter<V extends View> {
     };
 
 }
+
+/* below is the base of the doFailureReportingOperation to put in each method
+
+this.doFailureReportingOperation(async () => {
+    FUNCTION
+}, "")
+// finally block goes here  if there is one
+
+*/

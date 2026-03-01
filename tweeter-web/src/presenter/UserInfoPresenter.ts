@@ -56,7 +56,7 @@ export class UserInfoPresenter {
         try {
             if (currentUser === displayedUser) {
                 this._view.setIsFollower(false);
-        } else {
+            } else {
             this._view.setIsFollower(
             await this.followService.getIsFollowerStatus(authToken!, currentUser!, displayedUser!)
             );

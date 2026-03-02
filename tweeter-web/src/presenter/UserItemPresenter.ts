@@ -1,35 +1,14 @@
 import { AuthToken, User } from "tweeter-shared"
 import { UserService } from "../model.service/UserService";
-import { Presenter, View } from "./Presenter";
-
-export interface UserItemView extends View {
-    addItems: (items: User[]) => void
-}
-
-export abstract class UserItemPresenter extends Presenter<UserItemView> {
-    private userService = new UserService();
-    private _hasMoreItems = true;
-    private _lastItem: User | null = null;
+import { Presenter } from "./Presenter";
+import { PagedItemPresenter, PagedItemView } from "./PagedItemPresenter";
+import { FollowService } from "../model.service/FollowService";
 
 
-    protected get lastItem() { return this._lastItem; }
-    public get hasMoreItems() { return this._hasMoreItems; }
+export abstract class UserItemPresenter extends PagedItemPresenter<User, FollowService> {
 
-    protected set lastItem(value: User | null) { this._lastItem = value; }
-    protected set hasMoreItems(value: boolean) { this._hasMoreItems = value; }
-
-    reset() {
-      this._lastItem = null;
-      this._hasMoreItems = true;
+    protected serviceFactory(): FollowService {
+        return new FollowService();
     }
-
-    public async getUser (
-        authToken: AuthToken,
-        alias: string
-    ): Promise<User | null> {
-        return this.userService.getUser(authToken, alias)
-    };
-
-    public abstract loadMoreItems(authToken: AuthToken, userAlias: string): void
 
 }

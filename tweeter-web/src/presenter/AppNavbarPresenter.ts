@@ -1,11 +1,9 @@
 import { AuthToken } from "tweeter-shared"
 import { UserService } from "../model.service/UserService"
-import { View, Presenter } from "./Presenter"
+import { Presenter, MessageView } from "./Presenter"
 
 
-export interface AppNavbarView extends View {
-    displayInfoMessage: (message: string, duration: number, bootstrapClasses?: string | undefined) => string
-    deleteMessage: (message: string) => void
+export interface AppNavbarView extends MessageView {
     clearUserInfo: () => void
     navigate: (value: string) => void
 }

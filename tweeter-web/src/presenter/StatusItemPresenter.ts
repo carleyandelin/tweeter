@@ -7,15 +7,10 @@ export interface StatusItemView extends View {
 }
 
 export abstract class StatusItemPresenter extends Presenter<StatusItemView> {
-    private userService: UserService;
+    private userService = new UserService();
     private _hasMoreItems = true;
     private _lastItem: Status | null = null;
-
-    protected constructor(view: StatusItemView) {
-        super(view);
-        this.userService = new UserService();
-    }
-
+    
     protected get lastItem() { return this._lastItem; }
     public get hasMoreItems() { return this._hasMoreItems; }
 

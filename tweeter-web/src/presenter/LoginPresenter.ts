@@ -11,7 +11,7 @@ export interface LoginView extends View {
 export class LoginPresenter extends Presenter<LoginView> {
     private service: UserService;
 
-    constructor(view: LoginView) {
+    public constructor(view: LoginView) {
         super(view);
         this.service = new UserService();
     }

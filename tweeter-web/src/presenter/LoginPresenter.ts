@@ -16,6 +16,25 @@ export class LoginPresenter extends Presenter<LoginView> {
         this.service = new UserService();
     }
 
+    // MY ATTEMPT AT REFACTORING
+    // public async doLogin(alias: string, password: string, rememberMe: boolean, originalUrl: string | undefined) {
+    //     this.doFailureReportingOperation(async () => {
+    //         this.authenticateAndNavigate(
+    //             async () => {
+    //             const [user, authToken] = await this.service.login(alias, password);
+    //         }, 
+    //         () => {
+    //             if (originalUrl) {
+    //             this.view.navigate(originalUrl);
+    //             } else {
+    //                 this.view.navigate(`/feed/${user.alias}`);
+    //             }
+    //         }, rememberMe)
+    //     }, "log user in")
+    //     // finally block goes here
+    //     this.view.setIsLoading(false);
+    // };
+
     public async doLogin(alias: string, password: string, rememberMe: boolean, originalUrl: string | undefined) {
         this.doFailureReportingOperation(async () => {
             this.view.setIsLoading(true);

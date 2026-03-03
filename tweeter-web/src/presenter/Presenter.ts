@@ -1,3 +1,5 @@
+import { AuthToken } from "tweeter-shared/dist/model/domain/AuthToken";
+import { User } from "tweeter-shared/dist/model/domain/User";
 
 
 export interface View {
@@ -30,6 +32,17 @@ export abstract class Presenter<V extends View> {
             );
         }
     };
+
+    // MY ATTEMPT AT REFACTORING LOGIN AND REGISTER PRESENTER
+    // protected async authenticateAndNavigate(authenticateOp: () => [User, AuthToken], navigateOp: () => void, rememberMe: boolean) {
+    //     this.view.setIsLoading(true);
+
+    //     const [user, authToken] = authenticateOp();
+
+    //     this.view.updateUserInfo(user, authToken, rememberMe);
+
+    //     navigateOp();
+    // };
 
 }
 

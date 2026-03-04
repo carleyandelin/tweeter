@@ -49,6 +49,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.23.3",
+    "@babel/preset-env": "^7.23.3",
     "@babel/preset-typescript": "^7.23.3",
     "@testing-library/jest-dom": "^6.1.4",
     "@testing-library/react": "^14.1.0",
@@ -69,15 +70,15 @@
     "verbose": true,
     "testEnvironment": "jsdom",
     "moduleNameMapper": {
-        "\\.(css|less)$": "<rootDir>/test/__mocks__/styleMock.js"
+      "\\.(css|less)$": "<rootDir>/test/__mocks__/styleMock.js"
     },
     "testMatch": [
-        "<rootDir>/test/**/*.test.tsx",
-        "<rootDir>/test/**/*.test.ts"
+      "<rootDir>/test/**/*.test.tsx",
+      "<rootDir>/test/**/*.test.ts"
     ],
     "transform": {
-        "^.+\\.tsx?$": "ts-jest",
-        "\\.js$": "babel-jest"
+      "^.+\\.tsx?$": "ts-jest",
+      "\\.js$": "babel-jest"
     }
-}
+  }
 }

@@ -22,18 +22,21 @@ describe("AppNavbarPresenter", () => {
         when(appNavbarPresenterSpy.service).thenReturn(instance(mockService));
     })
 
+    // one
     it("tells the view to display a logging out message", async () => {
         await appNavbarPresenter.logOut(authToken);
         verify(mockAppNavbarPresenterView.displayInfoMessage("Logging Out...", 0)).once();
     })
 
+    // two
     it("calls logout on the user service with the correct auth token", async () => {
         await appNavbarPresenter.logOut(authToken);
         verify(mockService.logout(authToken)).once();
-        // let [capturedAuthToken] = capture(mockService.logout).last();
-        // expect(capturedAuthToken).toEqual(authToken);
+        let [capturedAuthToken] = capture(mockService.logout).last();
+        expect(capturedAuthToken).toEqual(authToken);
     })
 
+    // three
     it("tells the view to clear the info message that was displayed previously, clears the user info, and navigates to the login page when successful", async () => {
         await appNavbarPresenter.logOut(authToken);
         verify(mockAppNavbarPresenterView.deleteMessage("messageId123")).once();
@@ -42,6 +45,7 @@ describe("AppNavbarPresenter", () => {
         verify(mockAppNavbarPresenterView.displayErrorMessage(anything())).never();
     })
 
+    // four
     it("tells the view to display an error message and does not tell it to clear the info message, clear the user info or navigate to the login page when unsuccessful", async () => {
         let error = new Error("any ol' error");
         when(mockService.logout(anything())).thenThrow(error);

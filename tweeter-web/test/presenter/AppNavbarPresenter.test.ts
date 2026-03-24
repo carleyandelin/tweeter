@@ -32,8 +32,8 @@ describe("AppNavbarPresenter", () => {
     it("calls logout on the user service with the correct auth token", async () => {
         await appNavbarPresenter.logOut(authToken);
         verify(mockService.logout(authToken)).once();
-        let [capturedAuthToken] = capture(mockService.logout).last();
-        expect(capturedAuthToken).toEqual(authToken);
+        // let [capturedAuthToken] = capture(mockService.logout).last();
+        // expect(capturedAuthToken).toEqual(authToken);
     })
 
     // three

@@ -12,5 +12,5 @@ export * from "./model/domain/User";
 export * from "./model/domain/Status";
 export * from "./model/domain/AuthToken";
 
-// export * from "./request/RegisterRequest";
-// export * from "./response/RegisterResponse";
+export * from "./request/RegisterRequest";
+export * from "./response/RegisterResponse";

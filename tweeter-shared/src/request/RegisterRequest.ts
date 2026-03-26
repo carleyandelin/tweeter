@@ -1,3 +1,12 @@
+import { TweeterRequest } from "../net/TweeterRequest";
 
-
-export class RegisterRequest {}
+export class RegisterRequest implements TweeterRequest {
+  constructor(
+    public firstName: string,
+    public lastName: string,
+    public alias: string,
+    public password: string,
+    public imageStringBase64: string,
+    public imageFileExtension: string
+  ) {}
+}

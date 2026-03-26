@@ -1,8 +1,12 @@
 import { Buffer } from "buffer";
 import { AuthToken, User, FakeData } from "tweeter-shared";
 import { Service } from "./Service";
+import { ServerFacade } from "../network/ServerFacade";
+import { RegisterRequest } from "tweeter-shared";
 
 export class UserService implements Service {
+
+  private serverFacade = new ServerFacade();
 
   public async getUser(
     authToken: AuthToken,
@@ -44,13 +48,33 @@ export class UserService implements Service {
       Buffer.from(userImageBytes).toString("base64");
 
     // TODO: Replace with the result of calling the server
-    const user = FakeData.instance.firstUser;
+    const request = new RegisterRequest(
+      firstName,
+      lastName,
+      alias,
+      password,
+      imageStringBase64,
+      imageFileExtension
+    );
 
-    if (user === null) {
-      throw new Error("Invalid registration");
+    const response = await this.serverFacade.register(request);
+
+    if (!response.success) {
+      throw new Error(response.message);
     }
 
-    return [user, FakeData.instance.authToken];
-  };
-      
+    const user = new User(
+    response.user!.firstName,
+    response.user!.lastName,
+    response.user!.alias,
+    response.user!.imageUrl
+  );
+
+    const authToken = new AuthToken(
+      response.authToken!.token,
+      response.authToken!.timestamp
+    );
+
+    return [user, authToken];
+  };   
 }

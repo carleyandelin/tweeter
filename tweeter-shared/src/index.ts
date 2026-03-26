@@ -8,9 +8,5 @@ export { AuthToken } from "./model/domain/AuthToken";
 // uploading to lambda. Instead we have to list each export.
 export { FakeData } from "./util/FakeData";
 
-export * from "./model/domain/User";
-export * from "./model/domain/Status";
-export * from "./model/domain/AuthToken";
-
-export * from "./request/RegisterRequest";
-export * from "./response/RegisterResponse";
+export { RegisterRequest } from "./request/RegisterRequest";
+export { RegisterResponse } from "./response/RegisterResponse";

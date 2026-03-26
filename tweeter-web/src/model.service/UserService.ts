@@ -6,8 +6,6 @@ import { RegisterRequest } from "tweeter-shared";
 
 export class UserService implements Service {
 
-  private serverFacade = new ServerFacade();
-
   public async getUser(
     authToken: AuthToken,
     alias: string
@@ -48,33 +46,13 @@ export class UserService implements Service {
       Buffer.from(userImageBytes).toString("base64");
 
     // TODO: Replace with the result of calling the server
-    const request = new RegisterRequest(
-      firstName,
-      lastName,
-      alias,
-      password,
-      imageStringBase64,
-      imageFileExtension
-    );
+    const user = FakeData.instance.firstUser;
 
-    const response = await this.serverFacade.register(request);
-
-    if (!response.success) {
-      throw new Error(response.message);
+    if (user === null) {
+      throw new Error("Invalid registration");
     }
 
-    const user = new User(
-    response.user!.firstName,
-    response.user!.lastName,
-    response.user!.alias,
-    response.user!.imageUrl
-  );
-
-    const authToken = new AuthToken(
-      response.authToken!.token,
-      response.authToken!.timestamp
-    );
-
-    return [user, authToken];
-  };   
+    return [user, FakeData.instance.authToken];
+  };
+      
 }

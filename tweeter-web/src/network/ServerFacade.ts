@@ -13,6 +13,10 @@ export class ServerFacade {
     });
 
     const data = await response.json();
-    return data;
+
+    // parse the body from API Gateway
+    const parsed: RegisterResponse = JSON.parse(data.body);
+
+    return parsed;
   }
 }

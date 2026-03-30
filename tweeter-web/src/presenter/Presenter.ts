@@ -1,6 +1,4 @@
-import { AuthToken } from "tweeter-shared/dist/model/domain/AuthToken";
-import { User } from "tweeter-shared/dist/model/domain/User";
-
+import { AuthToken, User } from "tweeter-shared";
 
 export interface View {
     displayErrorMessage: (message: string) => void

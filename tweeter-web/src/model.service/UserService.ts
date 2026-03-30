@@ -1,7 +1,7 @@
 import { Buffer } from "buffer";
 import { AuthToken, User, FakeData } from "tweeter-shared";
 import { Service } from "./Service";
-import { ServerFacade } from "../network/ServerFacade";
+import { ServerFacade } from "../network/ServerFacade1";
 import { RegisterRequest } from "tweeter-shared";
 
 export class UserService implements Service {

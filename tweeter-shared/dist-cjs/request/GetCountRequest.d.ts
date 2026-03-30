@@ -1,0 +1,8 @@
+import { TweeterRequest } from "../net/TweeterRequest";
+import { AuthTokenDto } from "../model/dto/AuthTokenDto";
+import { UserDto } from "../model/dto/UserDto";
+export declare class GetCountRequest implements TweeterRequest {
+    authToken: AuthTokenDto;
+    user: UserDto;
+    constructor(authToken: AuthTokenDto, user: UserDto);
+}

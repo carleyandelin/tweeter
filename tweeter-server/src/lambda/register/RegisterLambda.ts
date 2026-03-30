@@ -22,8 +22,8 @@ export const handler = async (event: any) => {
       },
       body: JSON.stringify({
         success: true,
-        user,
-        authToken
+        user: user.dto,
+        authToken: authToken.dto
       })
     };
   } catch (error: any) {

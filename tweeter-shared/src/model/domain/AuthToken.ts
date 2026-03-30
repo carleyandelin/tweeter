@@ -1,31 +1,12 @@
 import { v4 as uuid } from "uuid";
+import { AuthTokenDto } from "../dto/AuthTokenDto";
+
 export class AuthToken {
   private _token: string;
   private _timestamp: number;
 
   public static Generate(): AuthToken {
-    const token: string = AuthToken.generateToken();
-    const timestamp: number = Date.now();
-    return new AuthToken(token, timestamp);
-  }
-
-  private static generateToken(): string {
-    try {
-      return uuid().toString();
-    } catch (error) {
-      // UUID not available. Generating a random string. Making it 64 characters to reduce the liklihood of a duplicate
-      let result = "";
-      const characters =
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$^*()-+";
-      const charactersLength = characters.length;
-      for (let i = 0; i < 64; i++) {
-        result += characters.charAt(
-          Math.floor(Math.random() * charactersLength)
-        );
-      }
-
-      return result;
-    }
+    return new AuthToken(uuid().toString(), Date.now());
   }
 
   public constructor(token: string, timestamp: number) {
@@ -33,33 +14,25 @@ export class AuthToken {
     this._timestamp = timestamp;
   }
 
-  public get token(): string {
-    return this._token;
+  public get token(): string { return this._token; }
+  public set token(value: string) { this._token = value; }
+  public get timestamp(): number { return this._timestamp; }
+  public set timestamp(value: number) { this._timestamp = value; }
+
+  public get dto(): AuthTokenDto {
+    return { token: this._token, timestamp: this._timestamp };
   }
 
-  public set token(value: string) {
-    this._token = value;
-  }
-
-  public get timestamp(): number {
-    return this._timestamp;
-  }
-
-  public set timestamp(value: number) {
-    this._timestamp = value;
+  public static fromDto(dto: AuthTokenDto | null | undefined): AuthToken | null {
+    if (!dto) return null;
+    return new AuthToken(dto.token, dto.timestamp);
   }
 
   public static fromJson(json: string | null | undefined): AuthToken | null {
-    if (!!json) {
-      const jsonObject: { _token: string; _timestamp: number } =
-        JSON.parse(json);
-      return new AuthToken(jsonObject._token, jsonObject._timestamp);
-    } else {
-      return null;
-    }
+    if (!json) return null;
+    const o: { _token: string; _timestamp: number } = JSON.parse(json);
+    return new AuthToken(o._token, o._timestamp);
   }
 
-  public toJson(): string {
-    return JSON.stringify(this);
-  }
+  public toJson(): string { return JSON.stringify(this); }
 }

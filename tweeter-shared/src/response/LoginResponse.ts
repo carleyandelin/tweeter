@@ -1,12 +1,12 @@
 import { TweeterResponse } from "../net/TweeterResponse";
-
+import { UserDto } from "../model/dto/UserDto";
+import { AuthTokenDto } from "../model/dto/AuthTokenDto";
 
 export class LoginResponse implements TweeterResponse {
-    success: boolean;
-    message?: string;
-
-    constructor(success: boolean, message?: string) {
-        this.success = success;
-        this.message = message;
-    }
+  constructor(
+    public success: boolean,
+    public message?: string,
+    public user?: UserDto,
+    public authToken?: AuthTokenDto
+  ) {}
 }

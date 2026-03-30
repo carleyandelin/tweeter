@@ -2,14 +2,15 @@
   "name": "tweeter-shared",
   "private": true,
   "version": "0.0.0",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist-cjs/index.js",
+  "types": "dist-cjs/index.d.ts",
   "scripts": {
     "dev": "vite",
     "build": "vite build && npm run compile",
     "preview": "vite preview",
     "compile": "npm run clean && tsc",
-    "clean": "rimraf dist"
+    "clean": "rimraf dist",
+    "compile-cjs": "tsc --project tsconfig.cjs.json"
   },
   "devDependencies": {
     "typescript": "^5.0.2",

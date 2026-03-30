@@ -1,5 +1,6 @@
 import { PostSegment, Type } from "./PostSegment";
 import { User } from "./User";
+import { StatusDto } from "../dto/StatusDto";
 import { format } from "date-fns";
 
 export class Status {
@@ -15,263 +16,112 @@ export class Status {
     this._segments = this.getPostSegments(post);
   }
 
+  public get post(): string { return this._post; }
+  public set post(value: string) { this._post = value; }
+  public get user(): User { return this._user; }
+  public set user(value: User) { this._user = value; }
+  public get timestamp(): number { return this._timestamp; }
+  public set timestamp(value: number) { this._timestamp = value; }
+  public get segments(): PostSegment[] { return this._segments; }
+  public set segments(value: PostSegment[]) { this._segments = value; }
+
+  public get formattedDate(): string {
+    return format(new Date(this.timestamp), "MMMM dd, yyyy HH:mm:ss");
+  }
+
+  public get dto(): StatusDto {
+    return {
+      post: this._post,
+      user: this._user.dto,
+      timestamp: this._timestamp,
+    };
+  }
+
+  public static fromDto(dto: StatusDto | null | undefined): Status | null {
+    if (!dto) return null;
+    const user = User.fromDto(dto.user);
+    if (!user) return null;
+    return new Status(dto.post, user, dto.timestamp);
+  }
+
+  public equals(other: Status): boolean {
+    return this._user.equals(other.user) && this._timestamp === other._timestamp && this._post === other.post;
+  }
+
+  public static fromJson(json: string | null | undefined): Status | null {
+    if (!json) return null;
+    const o: { _post: string; _user: { _firstName: string; _lastName: string; _alias: string; _imageUrl: string }; _timestamp: number } = JSON.parse(json);
+    return new Status(o._post, new User(o._user._firstName, o._user._lastName, o._user._alias, o._user._imageUrl), o._timestamp);
+  }
+
+  public toJson(): string { return JSON.stringify(this); }
+
+  // ── Segment parsing (unchanged from original) ──────────────────────────────
   private getPostSegments(post: string): PostSegment[] {
     const segments: PostSegment[] = [];
-
     let startIndex = 0;
-
-    for (let reference of Status.getSortedReferences(post)) {
-      if (startIndex < reference.startPostion) {
-        segments.push(
-          new PostSegment(
-            post.substring(startIndex, reference.startPostion),
-            startIndex,
-            reference.startPostion - 1,
-            Type.text
-          )
-        );
+    for (let ref of Status.getSortedReferences(post)) {
+      if (startIndex < ref.startPostion) {
+        segments.push(new PostSegment(post.substring(startIndex, ref.startPostion), startIndex, ref.startPostion - 1, Type.text));
       }
-
-      segments.push(reference);
-
-      startIndex = reference.endPosition;
+      segments.push(ref);
+      startIndex = ref.endPosition;
     }
-
     if (startIndex < post.length) {
-      segments.push(
-        new PostSegment(
-          post.substring(startIndex),
-          startIndex,
-          post.length,
-          Type.text
-        )
-      );
+      segments.push(new PostSegment(post.substring(startIndex), startIndex, post.length, Type.text));
     }
-
     return segments;
   }
 
   private static getSortedReferences(post: string): PostSegment[] {
-    const references = [
-      ...Status.parseUrlReferences(post),
-      ...Status.parseMentionReferences(post),
-      ...Status.parseNewlines(post),
-    ];
-
-    references.sort((a, b) => {
-      return a.startPostion - b.startPostion;
-    });
-
-    return references;
+    return [...Status.parseUrlReferences(post), ...Status.parseMentionReferences(post), ...Status.parseNewlines(post)]
+      .sort((a, b) => a.startPostion - b.startPostion);
   }
 
   private static parseUrlReferences(post: string): PostSegment[] {
-    const references: PostSegment[] = [];
-
-    const urls: string[] = Status.parseUrls(post);
-
-    let previousStartIndex = 0;
-
-    for (let url of urls) {
-      let startIndex = post.indexOf(url, previousStartIndex);
-
-      if (startIndex > -1) {
-        // Push the url
-        references.push(
-          new PostSegment(url, startIndex, startIndex + url.length, Type.url)
-        );
-
-        // Move start and previous start past the url
-        startIndex = startIndex + url.length;
-        previousStartIndex = startIndex;
-      }
+    const refs: PostSegment[] = [];
+    let prev = 0;
+    for (let url of Status.parseUrls(post)) {
+      const start = post.indexOf(url, prev);
+      if (start > -1) { refs.push(new PostSegment(url, start, start + url.length, Type.url)); prev = start + url.length; }
     }
-
-    return references;
+    return refs;
   }
 
   private static parseUrls(post: string): string[] {
-    const urls: string[] = [];
-
-    for (let word of post.split(/(\s+)/)) {
-      if (word.startsWith("http://") || word.startsWith("https://")) {
-        const endIndex = Status.findUrlEndIndex(word);
-        urls.push(word.substring(0, endIndex));
-      }
-    }
-
-    return urls;
+    return post.split(/(\s+)/).filter(w => w.startsWith("http://") || w.startsWith("https://"))
+      .map(w => w.substring(0, Status.findUrlEndIndex(w)));
   }
 
   private static findUrlEndIndex(word: string): number {
-    let index;
-
-    if (word.includes(".com")) {
-      index = word.indexOf(".com");
-      index += 4;
-    } else if (word.includes(".net")) {
-      index = word.indexOf(".net");
-      index += 4;
-    } else if (word.includes(".org")) {
-      index = word.indexOf(".org");
-      index += 4;
-    } else if (word.includes(".edu")) {
-      index = word.indexOf(".edu");
-      index += 4;
-    } else if (word.includes(".mil")) {
-      index = word.indexOf(".mil");
-      index += 4;
-    } else {
-      index = word.length;
-
-      // Remove trailing non-alphabetic characters (such as punctuation) that can't be at the end of a url
-      while (!Status.isLetter(word[index])) {
-        index--;
-      }
+    for (const ext of [".com", ".net", ".org", ".edu", ".mil"]) {
+      const i = word.indexOf(ext);
+      if (i !== -1) return i + 4;
     }
-
-    return index;
+    let i = word.length;
+    while (i > 0 && !Status.isLetter(word[i - 1])) i--;
+    return i;
   }
 
-  private static isLetter(c: string): boolean {
-    return c.length === 1 && c.match(/[a-zA-Z]/g) != null;
-  }
+  private static isLetter(c: string): boolean { return c.length === 1 && /[a-zA-Z]/.test(c); }
 
   private static parseMentionReferences(post: string): PostSegment[] {
-    const references: PostSegment[] = [];
-
-    const mentions: string[] = Status.parseMentions(post);
-
-    let previousStartIndex = 0;
-
-    for (let mention of mentions) {
-      let startIndex = post.indexOf(mention, previousStartIndex);
-
-      if (startIndex > -1) {
-        // Push the alias
-        references.push(
-          new PostSegment(
-            mention,
-            startIndex,
-            startIndex + mention.length,
-            Type.alias
-          )
-        );
-
-        // Move start and previous start past the mention
-        startIndex = startIndex + mention.length;
-        previousStartIndex = startIndex;
-      }
+    const refs: PostSegment[] = [];
+    let prev = 0;
+    for (let mention of post.split(/(\s+)/).filter(w => w.startsWith("@"))) {
+      const start = post.indexOf(mention, prev);
+      if (start > -1) { refs.push(new PostSegment(mention, start, start + mention.length, Type.alias)); prev = start + mention.length; }
     }
-
-    return references;
-  }
-
-  private static parseMentions(post: string): string[] {
-    const mentions: string[] = [];
-
-    for (let word of post.split(/(\s+)/)) {
-      if (word.startsWith("@")) {
-        // Remove all non-alphanumeric characters
-        word.replaceAll(/[^a-zA-Z0-9]/g, "");
-
-        mentions.push(word);
-      }
-    }
-
-    return mentions;
+    return refs;
   }
 
   private static parseNewlines(post: string): PostSegment[] {
-    const newlines: PostSegment[] = [];
-
+    const refs: PostSegment[] = [];
     const regex = /\n/g;
-
     let match;
     while ((match = regex.exec(post)) !== null) {
-      const matchIndex = match.index;
-      newlines.push(
-        new PostSegment("\n", matchIndex, matchIndex + 1, Type.newline)
-      );
+      refs.push(new PostSegment("\n", match.index, match.index + 1, Type.newline));
     }
-
-    return newlines;
-  }
-
-  public get post(): string {
-    return this._post;
-  }
-
-  public set post(value: string) {
-    this._post = value;
-  }
-
-  public get user(): User {
-    return this._user;
-  }
-
-  public set user(value: User) {
-    this._user = value;
-  }
-
-  public get timestamp(): number {
-    return this._timestamp;
-  }
-
-  public get formattedDate(): string {
-    let date: Date = new Date(this.timestamp);
-    return format(date, "MMMM dd, yyyy HH:mm:ss");
-  }
-
-  public set timestamp(value: number) {
-    this._timestamp = value;
-  }
-
-  public get segments(): PostSegment[] {
-    return this._segments;
-  }
-
-  public set segments(value: PostSegment[]) {
-    this._segments = value;
-  }
-
-  public equals(other: Status): boolean {
-    return (
-      this._user.equals(other.user) &&
-      this._timestamp === other._timestamp &&
-      this._post === other.post
-    );
-  }
-
-  public static fromJson(json: string | null | undefined): Status | null {
-    if (!!json) {
-      const jsonObject: {
-        _post: string;
-        _user: {
-          _firstName: string;
-          _lastName: string;
-          _alias: string;
-          _imageUrl: string;
-        };
-        _timestamp: number;
-        _segments: PostSegment[];
-      } = JSON.parse(json);
-      return new Status(
-        jsonObject._post,
-        new User(
-          jsonObject._user._firstName,
-          jsonObject._user._lastName,
-          jsonObject._user._alias,
-          jsonObject._user._imageUrl
-        ),
-        jsonObject._timestamp
-      );
-    } else {
-      return null;
-    }
-  }
-
-  public toJson(): string {
-    return JSON.stringify(this);
+    return refs;
   }
 }

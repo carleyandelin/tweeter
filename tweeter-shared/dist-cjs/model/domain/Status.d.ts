@@ -1,0 +1,32 @@
+import { PostSegment } from "./PostSegment";
+import { User } from "./User";
+import { StatusDto } from "../dto/StatusDto";
+export declare class Status {
+    private _post;
+    private _user;
+    private _timestamp;
+    private _segments;
+    constructor(post: string, user: User, timestamp: number);
+    get post(): string;
+    set post(value: string);
+    get user(): User;
+    set user(value: User);
+    get timestamp(): number;
+    set timestamp(value: number);
+    get segments(): PostSegment[];
+    set segments(value: PostSegment[]);
+    get formattedDate(): string;
+    get dto(): StatusDto;
+    static fromDto(dto: StatusDto | null | undefined): Status | null;
+    equals(other: Status): boolean;
+    static fromJson(json: string | null | undefined): Status | null;
+    toJson(): string;
+    private getPostSegments;
+    private static getSortedReferences;
+    private static parseUrlReferences;
+    private static parseUrls;
+    private static findUrlEndIndex;
+    private static isLetter;
+    private static parseMentionReferences;
+    private static parseNewlines;
+}

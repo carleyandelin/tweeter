@@ -18,7 +18,7 @@ export const useUserNavigation = () => {
     const navigateToUser = async (event: React.MouseEvent, featureUrl: string): Promise<void> => {
         event.preventDefault();
         try {
-            const alias = presenterRef.current!.extractAlias(event.target.toString());
+            const alias = presenterRef.current!.extractAlias((event.target as HTMLElement).textContent || "");
             const toUser = await presenterRef.current!.getUser(authToken!, alias)
     
             if (toUser) {

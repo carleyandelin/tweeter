@@ -83,9 +83,15 @@ const UserInfo = () => {
     navigate(`${getBaseUrl()}/${currentUser!.alias}`);
   };
 
+  // const getBaseUrl = (): string => {
+  //   const segments = location.pathname.split("/@");
+  //   return segments.length > 1 ? segments[0] : "/";
+  // };
+
   const getBaseUrl = (): string => {
-    const segments = location.pathname.split("/@");
-    return segments.length > 1 ? segments[0] : "/";
+    const segments = location.pathname.split("/");
+    // pathname is like /user/car8, so segments = ["", "user", "car8"]
+    return segments.length > 2 ? `/${segments[1]}` : "/";
   };
 
   const followDisplayedUser = async (
@@ -173,7 +179,7 @@ const UserInfo = () => {
                 <p id="returnToLoggedInUser">
                   Return to{" "}
                   <Link
-                    to={`./${currentUser.alias}`}
+                    to={`${getBaseUrl()}/${currentUser.alias}`}
                     onClick={switchToLoggedInUser}
                   >
                     logged in user

@@ -10,7 +10,7 @@ export const handler = async (event: any) => {
       body.lastName,
       body.alias,
       body.password,
-      new Uint8Array(Buffer.from(body.userImageBytes, "base64")),
+      new Uint8Array(Buffer.from(body.imageStringBase64, "base64")),
       body.imageFileExtension
     );
     return {

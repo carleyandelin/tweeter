@@ -1,10 +1,11 @@
 import { StatusService } from "../../service/StatusService";
 import { AuthToken, Status } from "tweeter-shared";
+import { DynamoDAOFactory } from "../../dao/factory/DynamoDAOFactory";
 
 export const handler = async (event: any) => {
   try {
     const body = JSON.parse(event.body);
-    const service = new StatusService();
+    const service = new StatusService(new DynamoDAOFactory());
     const [statuses, hasMore] = await service.loadMoreStoryItems(
       AuthToken.fromDto(body.authToken)!,
       body.userAlias,

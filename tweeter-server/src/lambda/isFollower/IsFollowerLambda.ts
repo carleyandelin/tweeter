@@ -1,10 +1,11 @@
 import { FollowService } from "../../service/FollowService";
 import { AuthToken, User } from "tweeter-shared";
+import { DynamoDAOFactory } from "../../dao/factory/DynamoDAOFactory";
 
 export const handler = async (event: any) => {
   try {
     const body = JSON.parse(event.body);
-    const service = new FollowService();
+    const service = new FollowService(new DynamoDAOFactory());
     const isFollower = await service.getIsFollowerStatus(
       AuthToken.fromDto(body.authToken)!,
       User.fromDto(body.user)!,

@@ -1,9 +1,10 @@
 import { UserService } from "../../service/UserService";
+import { DynamoDAOFactory } from "../../dao/factory/DynamoDAOFactory";
 
 export const handler = async (event: any) => {
   try {
     const body = JSON.parse(event.body);
-    const service = new UserService();
+    const service = new UserService(new DynamoDAOFactory());
     const [user, authToken] = await service.login(body.alias, body.password);
     return {
       statusCode: 200,

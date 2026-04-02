@@ -1,80 +1,98 @@
-import { AuthToken, User, FakeData } from "tweeter-shared";
-import { Service } from "./Service";
+import { AuthToken, User } from "tweeter-shared";
+import { IDAOFactory } from "../dao/factory/IDAOFactory";
+import { AuthorizationService } from "./AuthorizationService";
 
+export class FollowService {
+  private factory: IDAOFactory;
+  private authService: AuthorizationService;
 
-export class FollowService implements Service {
-    public async loadMoreFollowees (
-        authToken: AuthToken,
-        userAlias: string,
-        pageSize: number,
-        lastItem: User | null
-    ): Promise<[User[], boolean]>  {
-        // TODO: Replace with the result of calling server
-        return FakeData.instance.getPageOfUsers(lastItem, pageSize, userAlias);
-    };
+  constructor(factory: IDAOFactory) {
+    this.factory = factory;
+    this.authService = new AuthorizationService(factory);
+  }
 
-    public async loadMoreFollowers (
-        authToken: AuthToken,
-        userAlias: string,
-        pageSize: number,
-        lastItem: User | null
-    ): Promise<[User[], boolean]> {
-        // TODO: Replace with the result of calling server
-        return FakeData.instance.getPageOfUsers(lastItem, pageSize, userAlias);
-    };
-    
-    public async getFollowerCount (
-        authToken: AuthToken,
-        user: User
-    ): Promise<number> {
-        // TODO: Replace with the result of calling server
-        return FakeData.instance.getFollowerCount(user.alias);
-    };
+  async loadMoreFollowees(
+    authToken: AuthToken,
+    userAlias: string,
+    pageSize: number,
+    lastItem: User | null
+  ): Promise<[User[], boolean]> {
+    await this.authService.validateToken(authToken.token);
+    const [userDtos, hasMore] = await this.factory
+      .getFollowDAO()
+      .getFollowees(userAlias, pageSize, lastItem?.alias);
+    const users = userDtos.map((dto) => User.fromDto(dto)!);
+    return [users, hasMore];
+  }
 
-    public async getFolloweeCount (
-        authToken: AuthToken,
-        user: User
-    ): Promise<number> {
-        // TODO: Replace with the result of calling server
-        return FakeData.instance.getFolloweeCount(user.alias);
-    };
+  async loadMoreFollowers(
+    authToken: AuthToken,
+    userAlias: string,
+    pageSize: number,
+    lastItem: User | null
+  ): Promise<[User[], boolean]> {
+    await this.authService.validateToken(authToken.token);
+    const [userDtos, hasMore] = await this.factory
+      .getFollowDAO()
+      .getFollowers(userAlias, pageSize, lastItem?.alias);
+    const users = userDtos.map((dto) => User.fromDto(dto)!);
+    return [users, hasMore];
+  }
 
-    public async getIsFollowerStatus (
-        authToken: AuthToken,
-        user: User,
-        selectedUser: User
-    ): Promise<boolean> {
-        // TODO: Replace with the result of calling server
-        return FakeData.instance.isFollower();
-    };
+  async getFollowerCount(authToken: AuthToken, user: User): Promise<number> {
+    await this.authService.validateToken(authToken.token);
+    const aliases = await this.factory
+      .getFollowDAO()
+      .getFollowerAliases(user.alias);
+    return aliases.length;
+  }
 
-    public async follow (
-        authToken: AuthToken,
-        userToFollow: User
-    ): Promise<[followerCount: number, followeeCount: number]> {
-        // Pause so we can see the follow message. Remove when connected to the server
-        await new Promise((f) => setTimeout(f, 2000));
+  async getFolloweeCount(authToken: AuthToken, user: User): Promise<number> {
+    await this.authService.validateToken(authToken.token);
+    const [followees] = await this.factory
+      .getFollowDAO()
+      .getFollowees(user.alias, 1000);
+    return followees.length;
+  }
 
-        // TODO: Call the server
-        const followerCount = await this.getFollowerCount(authToken, userToFollow);
-        const followeeCount = await this.getFolloweeCount(authToken, userToFollow);
+  async getIsFollowerStatus(
+    authToken: AuthToken,
+    user: User,
+    selectedUser: User
+  ): Promise<boolean> {
+    await this.authService.validateToken(authToken.token);
+    return await this.factory
+      .getFollowDAO()
+      .isFollowing(user.alias, selectedUser.alias);
+  }
 
-        return [followerCount, followeeCount];
-    };
+  async follow(
+    authToken: AuthToken,
+    userToFollow: User
+  ): Promise<[followerCount: number, followeeCount: number]> {
+    await this.authService.validateToken(authToken.token);
+    const followerAlias = await this.authService.validateToken(authToken.token);
+    const followerDto = await this.factory.getUserDAO().getUser(followerAlias);
+    if (!followerDto) throw new Error("User not found");
 
-    public async unfollow (
-        authToken: AuthToken,
-        userToUnfollow: User
-    ): Promise<[followerCount: number, followeeCount: number]> {
-        // Pause so we can see the unfollow message. Remove when connected to the server
-        await new Promise((f) => setTimeout(f, 2000));
+    await this.factory.getFollowDAO().follow(followerDto, userToFollow.dto);
 
-        // TODO: Call the server
+    const followerCount = await this.getFollowerCount(authToken, userToFollow);
+    const followeeCount = await this.getFolloweeCount(authToken, userToFollow);
+    return [followerCount, followeeCount];
+  }
 
-        const followerCount = await this.getFollowerCount(authToken, userToUnfollow);
-        const followeeCount = await this.getFolloweeCount(authToken, userToUnfollow);
+  async unfollow(
+    authToken: AuthToken,
+    userToUnfollow: User
+  ): Promise<[followerCount: number, followeeCount: number]> {
+    const followerAlias = await this.authService.validateToken(authToken.token);
+    await this.factory
+      .getFollowDAO()
+      .unfollow(followerAlias, userToUnfollow.alias);
 
-        return [followerCount, followeeCount];
-    };
-
+    const followerCount = await this.getFollowerCount(authToken, userToUnfollow);
+    const followeeCount = await this.getFolloweeCount(authToken, userToUnfollow);
+    return [followerCount, followeeCount];
+  }
 }

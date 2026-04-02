@@ -1,36 +1,59 @@
-import { AuthToken, Status, FakeData } from "tweeter-shared";
-import { Service } from "./Service";
+import { AuthToken, Status } from "tweeter-shared";
+import { IDAOFactory } from "../dao/factory/IDAOFactory";
+import { AuthorizationService } from "./AuthorizationService";
 
+export class StatusService {
+  private factory: IDAOFactory;
+  private authService: AuthorizationService;
 
-export class StatusService implements Service {
-    public async loadMoreStoryItems (
-        authToken: AuthToken,
-        userAlias: string,
-        pageSize: number,
-        lastItem: Status | null
-    ): Promise<[Status[], boolean]> {
-        // TODO: Replace with the result of calling server
-        return FakeData.instance.getPageOfStatuses(lastItem, pageSize);
-    };
+  constructor(factory: IDAOFactory) {
+    this.factory = factory;
+    this.authService = new AuthorizationService(factory);
+  }
 
-    public async loadMoreFeedItems (
-        authToken: AuthToken,
-        userAlias: string,
-        pageSize: number,
-        lastItem: Status | null
-    ): Promise<[Status[], boolean]> {
-        // TODO: Replace with the result of calling server
-        return FakeData.instance.getPageOfStatuses(lastItem, pageSize);
-    };
+  async loadMoreStoryItems(
+    authToken: AuthToken,
+    userAlias: string,
+    pageSize: number,
+    lastItem: Status | null
+  ): Promise<[Status[], boolean]> {
+    await this.authService.validateToken(authToken.token);
+    const [statusDtos, hasMore] = await this.factory
+      .getStoryDAO()
+      .getStory(userAlias, pageSize, lastItem?.timestamp.toString());
+    const statuses = statusDtos.map((dto) => Status.fromDto(dto)!);
+    return [statuses, hasMore];
+  }
 
-    public async postStatus (
-        authToken: AuthToken,
-        newStatus: Status
-    ): Promise<void> {
-        // Pause so we can see the logging out message. Remove when connected to the server
-        await new Promise((f) => setTimeout(f, 2000));
+  async loadMoreFeedItems(
+    authToken: AuthToken,
+    userAlias: string,
+    pageSize: number,
+    lastItem: Status | null
+  ): Promise<[Status[], boolean]> {
+    await this.authService.validateToken(authToken.token);
+    const [statusDtos, hasMore] = await this.factory
+      .getFeedDAO()
+      .getFeed(userAlias, pageSize, lastItem?.timestamp.toString());
+    const statuses = statusDtos.map((dto) => Status.fromDto(dto)!);
+    return [statuses, hasMore];
+  }
 
-        // TODO: Call the server to post the status
-    };
+  async postStatus(authToken: AuthToken, newStatus: Status): Promise<void> {
+    const senderAlias = await this.authService.validateToken(authToken.token);
 
+    // Post to sender's story
+    await this.factory.getStoryDAO().postToStory(senderAlias, newStatus.dto);
+
+    // Fan out to all followers' feeds
+    const followerAliases = await this.factory
+      .getFollowDAO()
+      .getFollowerAliases(senderAlias);
+
+    if (followerAliases.length > 0) {
+      await this.factory
+        .getFeedDAO()
+        .batchPostToFeed(followerAliases, newStatus.dto);
+    }
+  }
 }

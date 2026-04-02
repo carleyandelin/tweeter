@@ -10,7 +10,7 @@ import { IFollowDAO } from "../interface/IFollowDAO";
 import { UserDto } from "tweeter-shared/src/model/dto/UserDto";
 
 const TABLE_NAME = "follows";
-const INDEX_NAME = "followee_handle-follower_handle-index";
+const INDEX_NAME = "follows_index";
 const REGION = "us-west-2";
 
 export class DynamoFollowDAO implements IFollowDAO {

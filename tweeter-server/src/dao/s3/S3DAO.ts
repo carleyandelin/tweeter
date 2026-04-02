@@ -6,7 +6,7 @@ import {
 import { IS3DAO } from "../interface/IS3DAO";
 
 const BUCKET = "cs340-aws-s3";
-const REGION = "us-west-2";
+const REGION = "us-east-1";
 
 export class S3DAO implements IS3DAO {
   async putImage(

@@ -28,16 +28,20 @@ export class DynamoAuthTokenDAO implements IAuthTokenDAO {
     );
   }
 
-  async getAliasByToken(token: string): Promise<string | null> {
-    const result = await this.client.send(
-      new GetCommand({
-        TableName: TABLE_NAME,
-        Key: { token: token },
-      })
-    );
+  async getAliasByToken(token: string): Promise<{ alias: string; timestamp: number } | null> {
+  const result = await this.client.send(
+    new GetCommand({
+      TableName: TABLE_NAME,
+      Key: { token: token },
+    })
+  );
 
-    return result.Item ? result.Item.user_handle : null;
-  }
+  if (!result.Item) return null;
+  return {
+    alias: result.Item.user_handle,
+    timestamp: result.Item.timestamp,
+  };
+}
 
   async deleteToken(token: string): Promise<void> {
     await this.client.send(

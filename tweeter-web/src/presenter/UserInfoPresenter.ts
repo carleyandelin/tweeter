@@ -23,11 +23,11 @@ export class UserInfoPresenter extends Presenter<UserInfoView> {
         return await this.followService.follow(authToken, userToFollow)
     };
 
-    public async unfollow (
+    public async unfollow(
         authToken: AuthToken,
         userToUnfollow: User
     ): Promise<[followerCount: number, followeeCount: number]> {
-        return await this.followService.follow(authToken, userToUnfollow)
+        return await this.followService.unfollow(authToken, userToUnfollow) // ✅
     };
 
     public async setNumbFollowers (authToken: AuthToken, displayedUser: User) {

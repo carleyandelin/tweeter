@@ -70,16 +70,16 @@ export class FollowService {
     authToken: AuthToken,
     userToFollow: User
   ): Promise<[followerCount: number, followeeCount: number]> {
-    await this.authService.validateToken(authToken.token);
     const followerAlias = await this.authService.validateToken(authToken.token);
     const followerDto = await this.factory.getUserDAO().getUser(followerAlias);
     if (!followerDto) throw new Error("User not found");
 
     await this.factory.getFollowDAO().follow(followerDto, userToFollow.dto);
 
-    const followerCount = await this.getFollowerCount(authToken, userToFollow);
-    const followeeCount = await this.getFolloweeCount(authToken, userToFollow);
-    return [followerCount, followeeCount];
+    const currentFollowerCount = await this.getFollowerCount(authToken, userToFollow);
+    const currentFolloweeCount = await this.getFolloweeCount(authToken, userToFollow);
+
+    return [currentFollowerCount + 1, currentFolloweeCount];
   }
 
   async unfollow(
@@ -87,12 +87,16 @@ export class FollowService {
     userToUnfollow: User
   ): Promise<[followerCount: number, followeeCount: number]> {
     const followerAlias = await this.authService.validateToken(authToken.token);
-    await this.factory
-      .getFollowDAO()
-      .unfollow(followerAlias, userToUnfollow.alias);
+    const followerDto = await this.factory.getUserDAO().getUser(followerAlias);
+    if (!followerDto) throw new Error("User not found");
 
-    const followerCount = await this.getFollowerCount(authToken, userToUnfollow);
-    const followeeCount = await this.getFolloweeCount(authToken, userToUnfollow);
-    return [followerCount, followeeCount];
+    await this.factory.getFollowDAO().unfollow(followerAlias, userToUnfollow.alias);
+
+    // Fetch counts BEFORE the operation would show stale data via GSI,
+    // so decrement/increment manually instead of re-querying
+    const currentFollowerCount = await this.getFollowerCount(authToken, userToUnfollow);
+    const currentFolloweeCount = await this.getFolloweeCount(authToken, userToUnfollow);
+
+    return [Math.max(0, currentFollowerCount - 1), currentFolloweeCount];
   }
 }
